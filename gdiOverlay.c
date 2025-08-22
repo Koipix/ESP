@@ -1,13 +1,14 @@
 #include <windows.h>
 
-int posX, posY = 100;
-int boxW = 100, boxH = 500;
+RECT box = {50, 50, 150, 150};
+int spd = 10;
 
 void DrawESP(HDC hdc) {
-  int left = posX;
-  int top = posY;
-  int right = posX + boxW;
-  int bottom = posY + boxH;
+  int left = box.left;
+  int top = box.top;
+  int right = box.right;
+  int bottom = box.bottom;
+
   HPEN pen = CreatePen(PS_SOLID, 3, RGB(255,0,0));
   HBRUSH hollow = (HBRUSH) GetStockObject(NULL_BRUSH);
   SelectObject(hdc, pen);
@@ -47,12 +48,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         EndPaint(hwnd, &ps);
         return 0;
       } break;
+      
+      //debugging..
+      case WM_KEYDOWN:
+        switch (wParam) {
+          case VK_LEFT: OffsetRect(&box, -spd, 0); break;
+          case VK_RIGHT: OffsetRect(&box, spd, 0); break;
+          case VK_UP: OffsetRect(&box, 0, -spd); break;
+          case VK_DOWN: OffsetRect(&box, 0, spd); break;
+      }
 
       case WM_TIMER: {
-        RECT rc;
-        GetClientRect(hwnd, &rc);
-        
-        posX += 5;
         InvalidateRect(hwnd, NULL, FALSE);
       } break;
 
