@@ -20,15 +20,32 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     switch (uMsg) {
       case WM_PAINT: {
         PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hwnd, &ps);
+        
         RECT rc;
         GetClientRect(hwnd, &rc);
-        HBRUSH bg = CreateSolidBrush(RGB(0,0,0));
-        FillRect(hdc, &rc, bg);
-        DeleteObject(bg);
+        
+        int width = rc.right - rc.left;
+        int height = rc.bottom - rc.top;
 
-        DrawESP(hdc);
+        HDC hdc = BeginPaint(hwnd, &ps);
+        HDC memDC = CreateCompatibleDC(hdc);
+
+        HBITMAP bitmap = CreateCompatibleBitmap(hdc, width, height);
+        HBITMAP oldBitmap = (HBITMAP)SelectObject(memDC, bitmap);
+
+        HBRUSH bg = CreateSolidBrush(RGB(0,0,0));
+        
+        FillRect(memDC, &rc, bg);
+        DrawESP(memDC);
+
+        BitBlt(hdc, 0, 0, width, height, memDC, 0, 0, SRCCOPY);
+        
+        SelectObject(memDC, oldBitmap);
+        DeleteObject(bitmap);
+        DeleteDC(memDC);
+
         EndPaint(hwnd, &ps);
+        return 0;
       } break;
 
       case WM_TIMER: {
